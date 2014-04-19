@@ -11,9 +11,12 @@ int main(int argc, char *argv[])
 	initscr();
 	if((has_color = has_colors()) == FALSE)
 	{
+		endwin();
 		printf("Your terminal does not support color\n");
+		return 0;
 	} else {
 		start_color();
+		init_printer();
 	}
 	
 	struct map_data *map = load_map("test.map");
@@ -31,7 +34,9 @@ int main(int argc, char *argv[])
 	}
 
 	print_map(map);
+#ifdef DEBUG_LOAD_MAP
 	printf("%s\n", map->data);
+#endif
 	refresh();
 	getch();
 	endwin();

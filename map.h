@@ -3,9 +3,9 @@
 
 struct map_data {
 	char *data;
-	
 };
 
-void print_map(struct map_data *map);
+extern void print_map(struct map_data *map);
+extern void init_printer();
 
 #endif

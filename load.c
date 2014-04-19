@@ -20,6 +20,10 @@ struct map_data *load_map(char *path)
 
 	//fseek(f, 0, SEEK_END);
 	long int file_size = ftell(f);
+#ifdef DEBUG_LOAD_MAP
+	printf("Filesize : %d\n", file_size);
+#endif
+
 	fclose(f);
 	f = fopen(path, "r");
 	if (file_size <= 0) {
@@ -38,8 +42,9 @@ struct map_data *load_map(char *path)
 	fread(data, file_size, 1, f);
 	data[file_size] = '\0';
 
-	printw("%s\n", data);
-
+#ifdef DEBUG_LOAD_MAP
+	printf("content:\n%s\n", data);
+#endif
 	ret->data = data;
 
 	if (!ret) {
