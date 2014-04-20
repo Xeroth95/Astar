@@ -7,13 +7,15 @@
 #define START 4
 #define GRASS 5
 
-void init_printer()
+int init_printer()
 {
 	init_pair(BARRIER, COLOR_RED, COLOR_BLACK);
 	init_pair(PATH, COLOR_MAGENTA, COLOR_BLACK);
 	init_pair(TARGET, COLOR_YELLOW, COLOR_BLACK);
 	init_pair(START, COLOR_BLUE, COLOR_BLACK);
 	init_pair(GRASS, COLOR_GREEN, COLOR_BLACK);
+
+	return 0;
 }
 
 void print_map(struct map_data *map)
@@ -55,4 +57,55 @@ void print_map(struct map_data *map)
 		}
 		data++;
 	}
+}
+
+void replace_field( struct map_data *map, point_t r, char c )
+{
+	map->data[r.x + r.y * (map->width + 1)] = c;
+}
+
+extern point_t get_start_point( struct map_data *map )
+{
+	int offset = 0;
+	int x,y;
+	x = y = 0;
+	
+	while( map->data[offset] != '\0' ) {
+		if (map->data[offset] == 's')
+			break;
+		++offset;
+	}
+
+	if ( map->data[offset] == '\0' ) {
+		x = -1;
+		y = -1;
+	} else {
+		y = offset / (map->width + 1);
+		x = offset % (map->width + 1);
+	}
+	point_t t = { x, y };
+	return t;
+}
+
+extern point_t get_target_point( struct map_data *map )
+{
+	int offset = 0;
+	int x,y;
+	x = y = 0;
+	
+	while( map->data[offset] != '\0' ) {
+		if (map->data[offset] == 't')
+			break;
+		++offset;
+	}
+
+	if ( map->data[offset] == '\0' ) {
+		x = -1;
+		y = -1;
+	} else {
+		y = offset / (map->width + 1);
+		x = offset % (map->width + 1);
+	}
+	point_t t = { x, y };
+	return t;
 }

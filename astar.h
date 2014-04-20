@@ -1,15 +1,7 @@
 #ifndef __ASTAR_H
 #define __ASTAR_H
 
-typedef struct {
-	int x;
-	int y;
-} point_t;
-
-struct map {
-	point_t *field;
-	size_t height, width;
-};
+#include "map.h"
 
 typedef struct {
 	point_t *field;
@@ -17,6 +9,9 @@ typedef struct {
 } path_t;
 
 extern
-path_t *search_path( const point_t start, const point_t target, const struct map *field ); 
+int init_pathfinder( int (*walkable_function)( const point_t, const struct map_data* ) );
+
+extern
+path_t *search_path( const point_t start, const point_t target, const struct map_data *field ); 
 
 #endif /* __ASTAR_H */

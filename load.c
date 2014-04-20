@@ -3,6 +3,9 @@
 #include "load.h"
 #include "map.h"
 
+unsigned int line_length( char *data );
+unsigned int line_count( char *data );
+
 struct map_data *load_map(char *path)
 {
 	struct map_data *ret = malloc(sizeof(struct map_data));
@@ -14,12 +17,13 @@ struct map_data *load_map(char *path)
 	//open the file and get the dimensions
 	FILE *f = fopen(path, "a");
 	if (!f) {
+		free( ret );
 		fprintf(stderr, "Could not open file %s.\n", path);
 		return NULL;
 	}
 
-	//fseek(f, 0, SEEK_END);
 	long int file_size = ftell(f);
+
 #ifdef DEBUG_LOAD_MAP
 	printf("Filesize : %d\n", file_size);
 #endif
@@ -27,29 +31,73 @@ struct map_data *load_map(char *path)
 	fclose(f);
 	f = fopen(path, "r");
 	if (file_size <= 0) {
-		fprintf(stderr, "File %s is not a valid map file.\n", path);
-		fclose(f);
+		fprintf( stderr, "File %s is not a valid map file.\n", path );
+		fclose( f );
+		free( ret );
 		return NULL;
 	}
 
 	char *data = malloc(file_size + 1);
 	if (!data) {
-		fprintf(stderr, "Could not allocate map buffer.\n");
-		fclose(f);
+		free( ret );
+		fprintf( stderr, "Could not allocate map buffer.\n" );
+		fclose( f );
 		return NULL;
 	}
 		
 	fread(data, file_size, 1, f);
 	data[file_size] = '\0';
 
+	int height = line_count( data );
+	int width = line_length( data );
+
+	/* test wether the map is actually valid */
+	int i;
+	for ( i = 0; i < height; ++i ) {
+		if ( line_length( data + i * (width + 1) ) != width) {
+			free( ret );
+			free( data );
+			fprintf( stderr,\
+				 "File %s is not a valid map file.\nIt is not quadratic!\n",\
+				 path );
+			return NULL;
+		}
+	}
+
 #ifdef DEBUG_LOAD_MAP
 	printf("content:\n%s\n", data);
 #endif
 	ret->data = data;
+	ret->height = height;
+	ret->width = width;
+	
 
 	if (!ret) {
+		free( data );
 		fprintf(stderr, "Something is wrong here too!");
 	}
 
 	return ret;
+}
+
+unsigned int line_length( char *data )
+{
+	unsigned int i = 0;
+	while ( *data != '\n' ) {
+		i++;
+		data++;
+	}
+	return i;
+}
+
+unsigned int line_count( char *data )
+{
+	unsigned int i = 0;
+	while ( *data != '\0' ) {
+		if ( *data == '\n' )
+			i++;
+		data++;
+	}
+
+	return i;
 }

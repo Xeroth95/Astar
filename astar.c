@@ -1,5 +1,7 @@
-#include "astar.h"
 #include <stdlib.h>
+#include <stdio.h>
+#include <assert.h>
+#include "astar.h"
 
 /* defines */
 
@@ -9,60 +11,77 @@
 /* private structs */
 
 struct star_node {
-	struct star_node *parent, **children;
-	point_t *val;
+	struct star_node *parent;
+	point_t val;
 	unsigned int cost_to_goal, cost_from_start, cost;
 };
 
 typedef struct {
-	struct star_node *start, *end, *cur;
+	struct star_node *end, *cur;
 } node_list;
 
 /* function prototypes */
 
-void add(node_list *list, struct star_node *node );
-void add_adjacent_nodes( node_list *list, struct star_node *node, const struct map_data *field );
-void contains( node_list *list, struct star_node *node );
-struct star_node *next( node_list *list );
-void reset( node_list *list );
+struct star_node *create_node( struct star_node *parent, point_t current, point_t target );
 
+void add(node_list *list, struct star_node *node );
+void add_adjacent_nodes( struct star_node *(*list)[4], struct star_node *node, const struct map_data *field, node_list *closed, point_t target );
+//void contains( node_list *list, struct star_node *node );
+//struct star_node *next( node_list *list );
+void reset( node_list *list );
+int point_equal( point_t x, point_t y );
 
 unsigned int estimate_cost_to_goal( point_t current, point_t target );
-unsigned int get_cost_from_start(struct star_node parent);
+unsigned int get_cost_from_start(struct star_node *parent);
 
-int (*is_traversable)(point_t, struct map_data*);
+path_t *create_path_from_list( node_list *list );
 
-int init_pathfinder(int (*walkable_function)(point_t, struct map_data*))
+int (*is_traversable)(const point_t, const struct map_data*);
+
+int init_pathfinder(int (*walkable_function)(const point_t, const struct map_data*))
 {
 	is_traversable = walkable_function;
+	return 0;
 }
 
 path_t *search_path( const point_t start, const point_t target, const struct map_data *field )
 {
 	node_list closed_list;
-	node_list open_list;
+	struct star_node *open_list[4];
+	open_list[0] = NULL;
+	open_list[1] = NULL;
+	open_list[2] = NULL;
+	open_list[3] = NULL;
 	
 	int target_reached = 0;
-	add( closed_list, start );
-	add_adjacent_nodes( open_list, start );
-	
+	struct star_node *start_node = create_node( NULL, start, target );
+	add( &closed_list, start_node );
+	add_adjacent_nodes( &open_list, start_node, field, &closed_list, target );
+
 	while( !target_reached ) {
-	    struct star_node *cur = next( open_list );
-	    unsigned int min = cur->cost;
-	    struct star_node *best = cur;
-	    while ( (cur = next( open_list )) != NULL ) {
-		  if ( min > cur->cost ) {
-			best = cur;
-			min = best->cost;
-		  }
-		  add( closed_list, best );
-		  if ( best->val = target ) {
+		int i = 0;
+		struct star_node *cur = open_list[0];
+		printf("current: (%d, %d)\n\r", cur->val.x, cur->val.y );  
+		unsigned int min = cur->cost;
+		struct star_node *best = cur;
+		while ( i < 4 && (cur = open_list[++i]) != NULL ) {
+			if ( min > cur->cost ) {
+				free( best );
+				best = cur;
+				min = best->cost;
+			} else {
+				free( cur );
+			}
+		}
+		add( &closed_list, best );
+		if ( point_equal( best->val, target ) ) {
 			target_reached = 1;
 			break;
-		  }
-		  add_adjacent_nodes( open_list, best );
-	    }
+		}
+		add_adjacent_nodes( &open_list, best, field, &closed_list, target );
 	}
+
+	return create_path_from_list( &closed_list );
 }
 
 struct star_node *create_node( struct star_node *parent, point_t val, point_t target )
@@ -71,9 +90,13 @@ struct star_node *create_node( struct star_node *parent, point_t val, point_t ta
 	if (!ret) return NULL;
 	ret->parent 		= parent;
 	ret->val 		= val;
-	ret->cost_from_start 	= get_cost_from_start( parent );
+	if ( parent == NULL)
+		ret->cost_from_start = 0;
+	else
+		ret->cost_from_start 	= get_cost_from_start( parent );
 	ret->cost_to_goal	= estimate_cost_to_goal( val, target );
 	ret->cost		= ret->cost_from_start + ret->cost_to_goal;
+	return ret;
 }
 
 unsigned int estimate_cost_to_goal(point_t current, point_t target)
@@ -86,3 +109,88 @@ unsigned int get_cost_from_start(struct star_node *parent)
 	return parent->cost_from_start + COST;
 }
 
+void add_adjacent_nodes( struct star_node *(*list)[4], struct star_node *node, const struct map_data *field, node_list *closed, point_t target )
+{
+	int i = 0;
+	
+	point_t cur = node->val;
+	point_t top = { cur.x, cur.y+1 };
+	point_t down = { cur.x, cur.y-1 };
+	point_t left = { cur.x-1, cur.y };
+	point_t right = { cur.x+1, cur.y };
+
+	// test wether they are in the closed list already
+
+
+	struct star_node *test = closed->end;
+	while ( test != NULL ) {
+		if ( point_equal( test->val, top) ) {
+			top.x = -1;
+		} else if ( point_equal( test->val, down) ) {
+			down.x = -1;
+		} else if ( point_equal( test->val, left ) ) {
+			left.x = -1;
+		} else if ( point_equal( test->val, right ) ) {
+			right.x = -1;
+		}
+		test = test->parent;
+	}
+
+	if ( is_traversable( top, field ) ) {
+		(*list)[i++] = create_node( node, top, target );
+	}
+	if ( is_traversable( down, field ) ) {
+		(*list)[i++] = create_node( node, down, target );
+	}
+	if ( is_traversable( left, field ) ) {
+		(*list)[i++] = create_node( node, left, target );
+	}
+	if ( is_traversable( right, field ) ) {
+		(*list)[i++] = create_node( node, right, target );
+	}
+	while ( i < 5 ) {
+		(*list)[i++] = NULL;
+	}
+}
+
+void add( node_list *list, struct star_node *node )
+{
+#ifdef DEBUG_PATHFINDING
+	assert( list->end == node->parent );
+#endif
+	list->end = node;
+}
+
+int point_equal( point_t x, point_t y )
+{
+	return (x.x == y.x) && (x.y == y.y);
+}
+
+path_t *create_path_from_list( node_list *list )
+{
+	path_t *ret = malloc( sizeof( path_t ) );
+	if ( ret == NULL)
+		return NULL;
+	size_t size = 0;
+	struct star_node *cur = list->end;
+	while (cur != NULL) {
+		size++;
+		cur = cur->parent;
+	}
+	ret->length = size;
+	ret->field = malloc( sizeof( point_t ) * size );
+	if ( ret->field == NULL ) {
+		free( ret );
+		fprintf( stderr, "Run out of memory\n!" );
+		return NULL;
+	}
+
+	cur = list->end;
+	//point_t test = { 0, 0 };
+	while ( size > 0 ) {
+		ret->field[--size] = cur->val;
+		cur = cur->parent;
+	}
+
+	return ret;
+}
