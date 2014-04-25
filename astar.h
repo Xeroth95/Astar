@@ -12,6 +12,10 @@ extern
 int init_pathfinder( int (*walkable_function)( const point_t, const struct map_data* ) );
 
 extern
+int cleanup_pathfinder();
+
+extern
 path_t *search_path( const point_t start, const point_t target, const struct map_data *field ); 
 
 #endif /* __ASTAR_H */
+
