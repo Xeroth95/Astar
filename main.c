@@ -36,7 +36,12 @@ int main(int argc, char *argv[])
 		assert( init_pathfinder( is_traversable_test ) );
 	}
 	
-	struct map_data *map = load_map("test.map");
+	struct map_data *map;
+
+	if ( argc > 1 )
+		map = load_map(argv[1]);
+	else
+		map = load_map("test.map");
 
 	if (!map) {
 		fprintf(stderr, "Something went wrong!\n");
@@ -57,16 +62,19 @@ int main(int argc, char *argv[])
 	printf("%s\n", map->data);
 #endif
 
+	refresh();
+	getch();
+
 	point_t start = get_start_point( map );
 	point_t target = get_target_point( map );
 
 	printw("Go from (%d, %d) to (%d, %d)\n", start.x, start.y, target.x, target.y);
 
-	path_t *path = search_path( start, target, map );
-
 	refresh();
 	getch();
-	
+
+	path_t *path = search_path( start, target, map );
+
 	int i;
 	for ( i = 0; i < path->length; ++i ) {
 		replace_field( map, path->field[i], 'p' );
@@ -81,6 +89,8 @@ int main(int argc, char *argv[])
 
 	free(map->data);
 	free(map);
+
+	cleanup_pathfinder();
 
 	return 0;
 }

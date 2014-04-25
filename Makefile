@@ -1,6 +1,7 @@
 VERSION = 0.04a
 CC = gcc
-CFLAGS = -Wall -Werror -g -DVERSION=\"$(VERSION)\"
+CFLAGS = -g -O3 -fstack-protector -W -Wall -Wno-unused-parameter -Wno-unused-function -Wno-unused-label -Wpointer-arith -Wformat -Wreturn-type -Wsign-compare -Wmultichar -Wformat-nonliteral -Winit-self -Wuninitialized -Wno-deprecated -Wformat-security -Werror
+#-Wall -Werror -g -DVERSION=\"$(VERSION)\"
 LDFLAGS = -lncurses
 OBJ_PATH = obj
 BIN_PATH = bin
