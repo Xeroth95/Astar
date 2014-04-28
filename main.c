@@ -9,10 +9,13 @@
 #include "load.h"
 #include "astar.h"
 #include "keyboard.h"
+#include "printer.h"
+#include "map.h"
 
 int has_color = 0;
 
 int init(struct map_data **map, int argc, char *argv[]);
+int cleanup_all();
 
 int is_traversable_test(const point_t test, const struct map_data *field)
 {
@@ -56,7 +59,7 @@ int old_main(int argc, char *argv[])
 		fprintf(stderr, "Data got corrupted!\n");
 		endwin();
 		return 2;
-		}*/
+		}
 
 	struct map_data *map;
 
@@ -100,7 +103,7 @@ int old_main(int argc, char *argv[])
 	free(map);
 
 	cleanup_pathfinder();
-
+  */
 	return 0;
 }
 
@@ -110,16 +113,34 @@ int main( int argc, char *argv[] )
 	if ( init(&map, argc, argv) ) {
 		exit( 0 );
 	}
-	char cur;
+	
+	int cur;
+	
 	point_t start = get_start_point( map );
-	while ( (cur = get_key_pressed()) != KEY_EXIT ) {
+	
+
+	
+	while ( (cur = getch()) != 'q' ) {
+		clear();
 		print_map( map );
-		if ( cur == KEY_ENTER ) {
-			path_t path = search_path( start, get_cursor(), map );
-			print_path( path );
+		
+		process_key( cur );
+		switch ( cur ) {
+			default: {
+				point_t target = get_cursor();
+				//mvprintw( 0, 0, "Cursor was at : (%d, %d)", target.x, target.y);
+				path_t *path_to_target = search_path( start, target, map );
+				print_path( path_to_target );
+				refresh();
+			}
 		}
+		
 		refresh();
 	}
+	
+	
+	cleanup_all();
+	return 0;
 }
 
 int init(struct map_data **map, int argc, char *argv[])
@@ -155,12 +176,20 @@ int init(struct map_data **map, int argc, char *argv[])
 		assert( start_color() );
 		assert( init_printer() );
 		assert( init_pathfinder( is_traversable_test ) );
+		assert( init_keyboard( (*map)->height, (*map)->width-1 ) );
 	}
 
 	
 	// get keys
 	cbreak();
-	noecho();
+	raw();
 
 	return 0;
 }
+
+int cleanup_all()
+{
+	endwin();
+	return 0;
+}
+

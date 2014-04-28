@@ -7,7 +7,7 @@ OBJ_PATH = obj
 BIN_PATH = bin
 OUTPUT = main
 
-OBJ = $(OBJ_PATH)/main.o $(OBJ_PATH)/load.o $(OBJ_PATH)/map.o $(OBJ_PATH)/astar.o $(OBJ_PATH)/keyboard.o
+OBJ = $(OBJ_PATH)/main.o $(OBJ_PATH)/load.o $(OBJ_PATH)/map.o $(OBJ_PATH)/astar.o $(OBJ_PATH)/keyboard.o $(OBJ_PATH)/printer.o
 
 $(BIN_PATH)/$(OUTPUT): ${OBJ}
 	$(CC) $(CFLAGS) -o $(BIN_PATH)/$(OUTPUT) $(OBJ) $(LDFLAGS)

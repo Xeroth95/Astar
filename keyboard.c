@@ -1,46 +1,49 @@
 #include "keyboard.h"
 
-point_t cursor;
+int max_height, max_width;
+int cur_x, cur_y;
 
-char get_key_pressed()
+int init_keyboard( int height, int width )
 {
-	int test = getch();
-
-	switch( test ) {
-	case KEY_UP: {
-		cursor.y++;
-		return '\0';
-	}
-	case KEY_DOWN: {
-		cursor.y--;
-		return '\0';
-	}
-	case KEY_LEFT: {
-		cursor.x--;
-		return '\0';
-	}
-	case KEY_RIGHT: {
-		cursor.x++;
-		return '\0';
-	}
-	default:
-		return (char) test;
-	}
+	max_height = height;
+	max_width = width;
+	
+	return 0;
 }
 
-point_t get_cursor(struct map_data *map)
+void process_key( int key )
 {
-	if ( cursor.x > map->width) {
-		cursor.y += cursor.x / map->width;
-		cursor.x %= map->width;
+	switch( key ) {
+	case 'w': {
+		if ( cur_y > 0 ) --cur_y;
+		move( cur_y, cur_x );
+		break;
 	}
-	if ( cursor.y > map->height ) {
-		cursor.y %= map->height;
+	case 's': {
+		if ( cur_y < max_height ) ++cur_y;
+		move( cur_y, cur_x );
+		break;
 	}
-	return cursor;
+	case 'a': {
+		if ( cur_x > 0 ) --cur_x;
+		move( cur_y, cur_x );
+		break;
+	}
+	case 'd': {
+		if ( cur_x < max_width ) ++cur_x;
+		move( cur_y, cur_x );
+		break;
+	}
+	}
+	
+	//printw( "This under me should read : \nCursor on : (%d, %d) (%c)\n", cur_x, cur_y, k );
 }
 
-void set_cursor(point_t new_cursor)
+point_t get_cursor() 
 {
-	cursor = new_cursor;
+	point_t ret;
+	ret.x = cur_x;
+	ret.y = cur_y;
+	
+	return ret;
 }
