@@ -4,3 +4,4 @@ bin/*
 *kde*
 *.o
 *local*
+obj/*

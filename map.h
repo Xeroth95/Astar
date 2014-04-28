@@ -1,13 +1,15 @@
 #ifndef __MAP_H
 #define __MAP_H
 
+#include "astar.h"
+
 typedef struct {
 	int x, y;
 } point_t;
 
 struct map_data {
 	char *data;
-	unsigned int height, width;
+	int height, width;
 };
 
 extern void print_map(struct map_data *map);

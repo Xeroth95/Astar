@@ -59,6 +59,16 @@ void print_map(struct map_data *map)
 	}
 }
 
+void print_path( path_t path )
+{
+	attron(COLOR_PAIR(PATH));
+	int i = 0;
+	for (; i < path->length; ++i ) {
+		mvprintw(path->field[i].y, path->field[i].x, "%c", 'p');
+	}
+	attroff(COLOR_PAIR(PATH));
+}
+
 void replace_field( struct map_data *map, point_t r, char c )
 {
 	map->data[r.x + r.y * (map->width + 1)] = c;

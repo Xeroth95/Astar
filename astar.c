@@ -25,7 +25,7 @@ typedef struct {
 struct star_node *create_node( struct star_node *parent, point_t current, point_t target );
 
 void add(node_list *list, struct star_node *node );
-void add_adjacent_nodes( struct star_node *(*list)[4], struct star_node *node, const struct map_data *field, node_list closed, node_list open, point_t target );
+int add_adjacent_nodes( struct star_node *(*list)[4], struct star_node *node, const struct map_data *field, node_list closed, node_list open, point_t target );
 int contains( node_list *list, struct star_node *node );
 //struct star_node *next( node_list *list );
 void reset( node_list *list );
@@ -45,25 +45,28 @@ int init_pathfinder(int (*walkable_function)(const point_t, const struct map_dat
 	return 0;
 }
 
+int cleanup_pathfinder() {
+	return 0;
+}
+
 path_t *search_path( const point_t start, const point_t target, const struct map_data *field )
 {
 	node_list closed_list = { 0 };
 	node_list open_list = { 0 };
-	struct star_node *open_canidates[4];
-	open_canidates[0] = NULL;
-	open_canidates[1] = NULL;
-	open_canidates[2] = NULL;
-	open_canidates[3] = NULL;
-	
+	struct star_node *open_canidates[4] = { 0 };
+		
 	int target_reached = 0;
 	struct star_node *start_node = create_node( NULL, start, target );
 	add( &closed_list, start_node );
-	add_adjacent_nodes( &open_canidates, start_node, field, closed_list, open_list, target );
+	add_adjacent_nodes( &open_canidates, start_node, field,\
+			    closed_list, open_list, target );
 
 	while( !target_reached ) {
 		int i = 0;
 		struct star_node *cur = open_canidates[0];
-		printf("current: (%d, %d)\n\r", cur->val.x, cur->val.y );  
+#ifdef DEBUG_PATHFINDING
+		printf("current: (%d, %d)\n\r", cur->val.x, cur->val.y );
+#endif  
 		unsigned int min = cur->cost;
 		struct star_node *best = cur;
 		while ( i < 4 && (cur = open_canidates[++i]) != NULL ) {
@@ -81,7 +84,13 @@ path_t *search_path( const point_t start, const point_t target, const struct map
 			target_reached = 1;
 			break;
 		}
-		add_adjacent_nodes( &open_canidates, best, field, closed_list, open_list, target );
+		
+
+		while ( add_adjacent_nodes( &open_canidates, best, field,\
+					    closed_list, open_list, target ) ) {
+			best = best->parent;
+		}
+		
 	}
 
 	path_t *path_to_return = create_path_from_list( &closed_list );
@@ -109,17 +118,18 @@ struct star_node *create_node( struct star_node *parent, point_t val, point_t ta
 	return ret;
 }
 
-unsigned int estimate_cost_to_goal(point_t current, point_t target)
+unsigned int estimate_cost_to_goal(point_t current, point_t target) // F
 {
 	return (abs(current.x - target.x) + abs(current.y - target.y)) * COST;
 }
 
-unsigned int get_cost_from_start(struct star_node *parent)
+unsigned int get_cost_from_start(struct star_node *parent) // G
 {
 	return parent->cost_from_start + COST;
 }
 
-void add_adjacent_nodes( struct star_node *(*list)[4], struct star_node *node, const struct map_data *field, node_list closed, node_list open, point_t target )
+int add_adjacent_nodes( struct star_node *(*list)[4], struct star_node *node, const struct map_data *field, \
+			node_list closed, node_list open, point_t target )
 {
 	int i = 0;
 	
@@ -131,33 +141,48 @@ void add_adjacent_nodes( struct star_node *(*list)[4], struct star_node *node, c
 
 	// test wether they are in the closed list already
 
-
 	struct star_node *test = closed.end;
-	while ( test != NULL ) {
+        while ( test != NULL ) {
 		if ( point_equal( test->val, top) ) {
+			if ( test->cost_from_start + COST < node->cost_from_start )
+				node->parent = test;
 			top.x = -1;
 		} else if ( point_equal( test->val, down) ) {
+			if ( test->cost_from_start + COST < node->cost_from_start )
+				node->parent = test;
 			down.x = -1;
 		} else if ( point_equal( test->val, left ) ) {
+			if ( test->cost_from_start + COST < node->cost_from_start )
+				node->parent = test;
 			left.x = -1;
 		} else if ( point_equal( test->val, right ) ) {
+			if ( test->cost_from_start + COST < node->cost_from_start )
+				node->parent = test;
 			right.x = -1;
 		}
 		test = test->parent;
-	}
-	test = open.end;
+		}
+	/*test = open.end;
 	while ( test != NULL ) {
 		if ( point_equal( test->val, top) ) {
+			if ( test->cost_from_start + COST < node->cost_from_start )
+				node->parent = test;
 			top.x = -1;
 		} else if ( point_equal( test->val, down) ) {
+			if ( test->cost_from_start + COST < node->cost_from_start )
+				node->parent = test;
 			down.x = -1;
 		} else if ( point_equal( test->val, left ) ) {
+			if ( test->cost_from_start + COST < node->cost_from_start )
+				node->parent = test;
 			left.x = -1;
 		} else if ( point_equal( test->val, right ) ) {
+			if ( test->cost_from_start + COST < node->cost_from_start )
+				node->parent = test;
 			right.x = -1;
 		}
 		test = test->parent;
-	}
+		}*/
 
 	if ( is_traversable( top, field ) ) {
 		(*list)[i++] = create_node( node, top, target );
@@ -175,9 +200,19 @@ void add_adjacent_nodes( struct star_node *(*list)[4], struct star_node *node, c
 		(*list)[i++] = create_node( node, right, target );
 		printf("Adding node at : (%d, %d)", right.x, right.y);
 	}
+	if ( i == 0 ) {
+		return 1;
+	}
+
 	while ( i < 5 ) {
 		(*list)[i++] = NULL;
 	}
+
+	if ( *list[0] == NULL && *list[1] == NULL && *list[2] == NULL && *list[3] == NULL ) {
+		return 1;
+	}
+
+	return 0;
 }
 
 void add( node_list *list, struct star_node *node )
@@ -240,3 +275,7 @@ void cleanup( node_list list )
 {
   
 }
+
+
+
+

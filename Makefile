@@ -1,18 +1,23 @@
 VERSION = 0.04a
 CC = gcc
-CFLAGS = -Wall -Werror -g -DVERSION=\"$(VERSION)\"
+CFLAGS = -g -O3 -fstack-protector -W -Wall -Wno-unused-parameter -Wno-unused-function -Wno-unused-label -Wpointer-arith -Wformat -Wreturn-type -Wsign-compare -Wmultichar -Wformat-nonliteral -Winit-self -Wuninitialized -Wno-deprecated -Wformat-security -Werror
+#-Wall -Werror -g -DVERSION=\"$(VERSION)\"
 LDFLAGS = -lncurses
+OBJ_PATH = obj
+BIN_PATH = bin
+OUTPUT = main
 
-OBJ = main.o load.o map.o astar.o
+OBJ = $(OBJ_PATH)/main.o $(OBJ_PATH)/load.o $(OBJ_PATH)/map.o $(OBJ_PATH)/astar.o $(OBJ_PATH)/keyboard.o
 
-bin/main: ${OBJ}
-	$(CC) $(CFLAGS) -o bin/main $(OBJ) $(LDFLAGS)
+$(BIN_PATH)/$(OUTPUT): ${OBJ}
+	$(CC) $(CFLAGS) -o $(BIN_PATH)/$(OUTPUT) $(OBJ) $(LDFLAGS)
 
-%.o:%.c
+$(OBJ_PATH)/%.o:%.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
-run: bin/main
-	bin/main
+run: $(BIN_PATH)/$(OUTPUT)
+	$(BIN_PATH)/$(OUTPUT)
 
 clean:
-	rm $(OBJ)
+	rm $(OBJ_PATH)/*
+	rm $(BIN_PATH)/*
