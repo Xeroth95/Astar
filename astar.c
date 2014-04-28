@@ -186,19 +186,27 @@ int add_adjacent_nodes( struct star_node *(*list)[4], struct star_node *node, co
 
 	if ( is_traversable( top, field ) ) {
 		(*list)[i++] = create_node( node, top, target );
+#ifdef DEBUG_PATHFINDING
 		printf("Adding node at : (%d, %d)", top.x, top.y);
+#endif
 	}
 	if ( is_traversable( down, field ) ) {
 		(*list)[i++] = create_node( node, down, target );
+#ifdef DEBUG_PATHFINDING
 		printf("Adding node at : (%d, %d)", down.x, down.y);
+#endif
 	}
 	if ( is_traversable( left, field ) ) {
 		(*list)[i++] = create_node( node, left, target );
+#ifdef DEBUG_PATHFINDING
 		printf("Adding node at : (%d, %d)", left.x, left.y);
+#endif
 	}
 	if ( is_traversable( right, field ) ) {
 		(*list)[i++] = create_node( node, right, target );
+#ifdef DEBUG_PATHFINDING
 		printf("Adding node at : (%d, %d)", right.x, right.y);
+#endif
 	}
 	if ( i == 0 ) {
 		return 1;

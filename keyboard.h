@@ -5,8 +5,8 @@
 #include "astar.h"
 #include "map.h"
 
+int init_keyboard( int height, int width );
+void process_key( int key );
 point_t get_cursor();
-void set_cursor();
-char get_key_pressed();
 
 #endif

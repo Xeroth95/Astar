@@ -3,8 +3,8 @@
 #include "load.h"
 #include "map.h"
 
-unsigned int line_length( char *data );
-unsigned int line_count( char *data );
+int line_length( char *data );
+int line_count( char *data );
 
 struct map_data *load_map(char *path)
 {
@@ -80,7 +80,7 @@ struct map_data *load_map(char *path)
 	return ret;
 }
 
-unsigned int line_length( char *data )
+int line_length( char *data )
 {
 	unsigned int i = 0;
 	while ( *data != '\n' ) {
@@ -90,7 +90,7 @@ unsigned int line_length( char *data )
 	return i;
 }
 
-unsigned int line_count( char *data )
+int line_count( char *data )
 {
 	unsigned int i = 0;
 	while ( *data != '\0' ) {
