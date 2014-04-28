@@ -2,3 +2,5 @@
 *.map
 bin/*
 *kde*
+*.o
+*local*

@@ -13,3 +13,6 @@ bin/main: ${OBJ}
 
 run: bin/main
 	bin/main
+
+clean:
+	rm $(OBJ)

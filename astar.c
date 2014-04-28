@@ -161,15 +161,19 @@ void add_adjacent_nodes( struct star_node *(*list)[4], struct star_node *node, c
 
 	if ( is_traversable( top, field ) ) {
 		(*list)[i++] = create_node( node, top, target );
+		printf("Adding node at : (%d, %d)", top.x, top.y);
 	}
 	if ( is_traversable( down, field ) ) {
 		(*list)[i++] = create_node( node, down, target );
+		printf("Adding node at : (%d, %d)", down.x, down.y);
 	}
 	if ( is_traversable( left, field ) ) {
 		(*list)[i++] = create_node( node, left, target );
+		printf("Adding node at : (%d, %d)", left.x, left.y);
 	}
 	if ( is_traversable( right, field ) ) {
 		(*list)[i++] = create_node( node, right, target );
+		printf("Adding node at : (%d, %d)", right.x, right.y);
 	}
 	while ( i < 5 ) {
 		(*list)[i++] = NULL;

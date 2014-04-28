@@ -36,7 +36,12 @@ int main(int argc, char *argv[])
 		assert( init_pathfinder( is_traversable_test ) );
 	}
 	
-	struct map_data *map = load_map("test.map");
+	struct map_data *map;
+	
+	if ( argc > 1 )
+		map = load_map( argv[1] );
+	else
+		map = load_map("test.map");
 
 	if (!map) {
 		fprintf(stderr, "Something went wrong!\n");
