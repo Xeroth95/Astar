@@ -8,28 +8,30 @@ int init_keyboard( int height, int width )
 	max_height = height;
 	max_width = width;
 	
+	keypad(stdscr, TRUE);
+
 	return 0;
 }
 
 void process_key( int key )
 {
 	switch( key ) {
-	case 'w': {
+	case KEY_UP: {
 		if ( cur_y > 0 ) --cur_y;
 		move( cur_y, cur_x );
 		break;
 	}
-	case 's': {
+	case KEY_DOWN: {
 		if ( cur_y < max_height ) ++cur_y;
 		move( cur_y, cur_x );
 		break;
 	}
-	case 'a': {
+	case KEY_LEFT: {
 		if ( cur_x > 0 ) --cur_x;
 		move( cur_y, cur_x );
 		break;
 	}
-	case 'd': {
+	case KEY_RIGHT: {
 		if ( cur_x < max_width ) ++cur_x;
 		move( cur_y, cur_x );
 		break;
