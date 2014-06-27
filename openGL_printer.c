@@ -6,8 +6,14 @@
 #include <GL/glew.h>
 #include <GL/freeglut.h>
 
-
 #define WINDOW_TITLE_PREFIX "OpenEmblem"
+
+typedef struct
+{
+	float coord[4];
+	float col[4];
+} vertex;
+
 
 int     current_width  = 800,
 	current_height = 600,
@@ -15,12 +21,11 @@ int     current_width  = 800,
 
 unsigned int frame_count = 0;
 
-GLuint  vert_shader_id,
-	frag_shader_id,
-	program_id,
-	vao_id,
-	vbo_id,
-	col_buf_id;
+GLuint  vert_shader_id = 0,
+	frag_shader_id = 0,
+	program_id = 0,
+	vao_id = 0,
+	vbo_id = 0;
 
 const GLchar *vertex_shader = 
 {
@@ -46,7 +51,7 @@ const GLchar* fragment_shader =
 
 	"void main(void)\n"\
 	"{\n"\
-	"   out_col = ex_col\n"\
+	"   out_col = ex_col;\n"\
 	"}\n"\
 };
 
@@ -79,6 +84,7 @@ void initialize(int argc, char *argv[])
 
 	init_window(argc, argv);
 
+	glewExperimental = GL_TRUE;
 	glew_init_result = glewInit();
 
 	if (GLEW_OK != glew_init_result) {
@@ -149,7 +155,7 @@ void render_func(void)
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	glDrawArrays(GL_TRIANGLES, 0 ,3);
+	glDrawArrays(GL_TRIANGLES, 0, 3);
 
 	glutSwapBuffers();
 
@@ -189,33 +195,31 @@ void cleanup(void)
 
 void create_vbo(void)
 {
-	GLfloat vert[] = {
-		-0.8f, -0.8f, 0.0f, 1.0f,
-		0.0f, 0.8f, 0.0f, 1.0f,
-		0.8f, -0.8f, 0.0f, 1.0f
-	};
-
-	GLfloat col[] = {
-		1.0f, 0.0f, 0.0f, 1.0f,
-		0.0f, 1.0f, 0.0f, 1.0f,
-		0.0f, 0.0f, 1.0f, 1.0f
+	vertex vertices[] =
+	{
+		{{-0.8f, -0.8f, 0.0f, 1.0f}, {1.0f, 0.0f, 0.0f, 1.0f}},
+		{{0.0f, 0.8f, 0.0f, 1.0f}, {0.0f, 1.0f, 0.0f, 1.0f}},
+		{{0.8f, -0.8f, 0.0f, 1.0f}, {0.0f, 0.0f, 1.0f, 1.0f}}
 	};
 
 	GLenum error = glGetError();
-	
+
+	const size_t buffer_size = sizeof(vertices);
+	const size_t vertex_size = sizeof(vertices[0]);
+	const size_t col_offset  = sizeof(vertices[0].coord);
+
+	glGenBuffers(1, &vbo_id);
+
 	glGenVertexArrays(1, &vao_id);
 	glBindVertexArray(vao_id);
 
-	glGenBuffers(1, &vbo_id);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo_id);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vert), vert, GL_STATIC_DRAW);
-	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, 0);
-	glEnableVertexAttribArray(0);
+	glBufferData(GL_ARRAY_BUFFER, buffer_size, vertices, GL_STATIC_DRAW);
 
-	glGenBuffers(1, &col_buf_id);
-	glBindBuffer(GL_ARRAY_BUFFER, col_buf_id);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(col), col, GL_STATIC_DRAW);
-	glVertexAttribPointer(1, 4 ,GL_FLOAT, GL_FALSE, 0 ,0);
+	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, vertex_size, 0);
+	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, vertex_size, (GLvoid *) col_offset);
+
+	glEnableVertexAttribArray(0);
 	glEnableVertexAttribArray(1);
 
 	error = glGetError();
@@ -238,11 +242,12 @@ void destroy_vbo(void)
 	glDisableVertexAttribArray(0);
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glDeleteBuffers(1, &col_buf_id);
-	glDeleteBuffers(1, &vbo_id);
 
+	glDeleteBuffers(1, &vbo_id);
+	
 	glBindVertexArray(0);
 	glDeleteVertexArrays(1, &vao_id);
+
 
 	error = glGetError();
 	if (GL_NO_ERROR != error) {
@@ -282,7 +287,7 @@ void create_shaders(void)
 			gluErrorString(error)
 			);
 
-		exit(EXIT_FAILURE);
+		exit(-1);
 	}
 }
 

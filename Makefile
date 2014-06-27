@@ -21,3 +21,7 @@ run: $(BIN_PATH)/$(OUTPUT)
 clean:
 	rm $(OBJ_PATH)/*
 	rm $(BIN_PATH)/*
+
+open_gl: $(OBJ_PATH)/openGL_printer.o
+	$(CC) -o $(BIN_PATH)/test $< -lGL -lGLU -lGLEW -lglut 
+	primusrun $(BIN_PATH)/test
