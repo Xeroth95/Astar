@@ -112,7 +112,7 @@ struct star_node *create_node( struct star_node *parent, point_t val, point_t ta
 	if ( parent == NULL)
 		ret->cost_from_start = 0;
 	else
-		ret->cost_from_start 	= get_cost_from_start( parent );
+		ret->cost_from_start = get_cost_from_start( parent );
 	ret->cost_to_goal	= estimate_cost_to_goal( val, target );
 	ret->cost		= ret->cost_from_start + ret->cost_to_goal;
 	return ret;
