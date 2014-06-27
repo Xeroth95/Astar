@@ -45,7 +45,14 @@ struct map_data *load_map(char *path)
 		return NULL;
 	}
 		
-	fread(data, file_size, 1, f);
+	int read = fread(data, 1, file_size ,f);
+	if (read != file_size) {
+		fprintf( stderr, "Could not read \"%s\"", path );
+		free( ret );
+		free( data );
+		fclose( f );
+		return NULL;
+	}
 	data[file_size] = '\0';
 
 	int height = line_count( data );

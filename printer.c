@@ -66,4 +66,5 @@ void print_path( path_t *path )
 		mvprintw(path->field[i].y, path->field[i].x, "%c", 'p');
 	}
 	attroff(COLOR_PAIR(PATH));
+	move(path->field[i-1].y, path->field[i-1].x);
 }
