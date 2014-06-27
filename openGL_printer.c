@@ -15,7 +15,7 @@ typedef struct
 } vertex;
 
 
-int     current_width  = 800,
+int     current_width  = 600,
 	current_height = 600,
 	window         = 0;
 
@@ -24,8 +24,10 @@ unsigned int frame_count = 0;
 GLuint  vert_shader_id = 0,
 	frag_shader_id = 0,
 	program_id = 0,
-	vao_id = 0,
-	vbo_id = 0;
+	vao_id = 0,// vertex array
+	vbo_id = 0,// vertex buffer
+	ibo_id[2] = { 0 },// index buffer
+	active_ibo = 0;
 
 const GLchar *vertex_shader = 
 {
@@ -62,6 +64,7 @@ void resize_func(int width, int heigth);
 void render_func(void);
 void timer_func(int);
 void idle_func(void);
+void keyboard_func(unsigned char key, int x, int y);
 
 void cleanup(void);
 void create_vbo(void);
@@ -141,6 +144,7 @@ void init_window(int argc, char *argv[])
 	glutIdleFunc(idle_func);
 	glutTimerFunc(0, timer_func, 0);
 	glutCloseFunc(cleanup);
+	glutKeyboardFunc(keyboard_func);
 }
 
 void resize_func(int w, int h)
@@ -155,7 +159,11 @@ void render_func(void)
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	glDrawArrays(GL_TRIANGLES, 0, 3);
+	if (active_ibo == 0) {
+		glDrawElements(GL_TRIANGLES, 48, GL_UNSIGNED_BYTE,  (GLvoid *) 0);
+	} else {
+		glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_BYTE,  (GLvoid *) 0);
+	}
 
 	glutSwapBuffers();
 
@@ -165,6 +173,23 @@ void render_func(void)
 void idle_func(void)
 {
 	glutPostRedisplay();
+}
+
+void keyboard_func(unsigned char key, int x, int y)
+{
+	switch(key)
+	{
+	case 'T' :
+	case 't' :
+	{
+		active_ibo = (active_ibo+1) % 2;
+		//printf("%d\n", active_ibo);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo_id[active_ibo]);
+		break;
+	}
+	default :
+		break;
+	}
 }
 
 void timer_func(int value)
@@ -197,9 +222,68 @@ void create_vbo(void)
 {
 	vertex vertices[] =
 	{
-		{{-0.8f, -0.8f, 0.0f, 1.0f}, {1.0f, 0.0f, 0.0f, 1.0f}},
-		{{0.0f, 0.8f, 0.0f, 1.0f}, {0.0f, 1.0f, 0.0f, 1.0f}},
-		{{0.8f, -0.8f, 0.0f, 1.0f}, {0.0f, 0.0f, 1.0f, 1.0f}}
+		{ { 0.0f, 0.0f, 0.0f, 1.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } },
+// Top
+		{ { -0.2f, 0.8f, 0.0f, 1.0f }, { 0.0f, 1.0f, 0.0f, 1.0f } },
+		{ { 0.2f, 0.8f, 0.0f, 1.0f }, { 0.0f, 0.0f, 1.0f, 1.0f } },
+		{ { 0.0f, 0.8f, 0.0f, 1.0f }, { 0.0f, 1.0f, 1.0f, 1.0f } },
+		{ { 0.0f, 1.0f, 0.0f, 1.0f }, { 1.0f, 0.0f, 0.0f, 1.0f } },
+// Bottom
+		{ { -0.2f, -0.8f, 0.0f, 1.0f }, { 0.0f, 0.0f, 1.0f, 1.0f } },
+		{ { 0.2f, -0.8f, 0.0f, 1.0f }, { 0.0f, 1.0f, 0.0f, 1.0f } },
+		{ { 0.0f, -0.8f, 0.0f, 1.0f }, { 0.0f, 1.0f, 1.0f, 1.0f } },
+		{ { 0.0f, -1.0f, 0.0f, 1.0f }, { 1.0f, 0.0f, 0.0f, 1.0f } },
+// Left
+		{ { -0.8f, -0.2f, 0.0f, 1.0f }, { 0.0f, 1.0f, 0.0f, 1.0f } },
+		{ { -0.8f, 0.2f, 0.0f, 1.0f }, { 0.0f, 0.0f, 1.0f, 1.0f } },
+		{ { -0.8f, 0.0f, 0.0f, 1.0f }, { 0.0f, 1.0f, 1.0f, 1.0f } },
+		{ { -1.0f, 0.0f, 0.0f, 1.0f }, { 1.0f, 0.0f, 0.0f, 1.0f } },
+// Right
+		{ { 0.8f, -0.2f, 0.0f, 1.0f }, { 0.0f, 0.0f, 1.0f, 1.0f } },
+		{ { 0.8f, 0.2f, 0.0f, 1.0f }, { 0.0f, 1.0f, 0.0f, 1.0f } },
+		{ { 0.8f, 0.0f, 0.0f, 1.0f }, { 0.0f, 1.0f, 1.0f, 1.0f } },
+		{ { 1.0f, 0.0f, 0.0f, 1.0f }, { 1.0f, 0.0f, 0.0f, 1.0f } }
+	};					
+
+	GLubyte indices[] = {
+// Top
+		0, 1, 3,
+		0, 3, 2,
+		3, 1, 4,
+		3, 4, 2,
+// Bottom
+		0, 5, 7,
+		0, 7, 6,
+		7, 5, 8,
+		7, 8, 6,
+// Left
+		0, 9, 11,
+		0, 11, 10,
+		11, 9, 12,
+		11, 12, 10,
+// Right
+		0, 13, 15,
+		0, 15, 14,
+		15, 13, 16,
+		15, 16, 14
+	};
+
+	GLubyte alt_indices[] = {
+// Outer square border:
+		3, 4, 16,
+		3, 15, 16,
+		15, 16, 8,
+		15, 7, 8,
+		7, 8, 12,
+		7, 11, 12,
+		11, 12, 4,
+		11, 3, 4,
+ 
+// Inner square
+		0, 11, 3,
+		0, 3, 15,
+		0, 15, 7,
+		0, 7, 11
 	};
 
 	GLenum error = glGetError();
@@ -221,6 +305,14 @@ void create_vbo(void)
 
 	glEnableVertexAttribArray(0);
 	glEnableVertexAttribArray(1);
+
+	glGenBuffers(2, ibo_id);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo_id[0]);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo_id[1]);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(alt_indices), alt_indices, GL_STATIC_DRAW);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo_id[0]);
 
 	error = glGetError();
 	if (GL_NO_ERROR != error) {
@@ -248,6 +340,8 @@ void destroy_vbo(void)
 	glBindVertexArray(0);
 	glDeleteVertexArrays(1, &vao_id);
 
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	glDeleteBuffers(2, ibo_id);
 
 	error = glGetError();
 	if (GL_NO_ERROR != error) {
